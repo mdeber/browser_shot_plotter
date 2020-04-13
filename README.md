@@ -1,20 +1,14 @@
-Assemble multiple tracks of publication-quality browser shots using BRGenomics
-and ggplot2.
+Assemble multiple tracks of publication-quality browser shots using
+[BRGenomics](https://mdeber.github.io) and ggplot2.
 
-Browser tracks are created independently using identical coordinate systems on
-the x-axis, and are aligned and assembled using the `patchwork` package. Any
-number of tracks or track-groups can be created and combined piecemeal, as
-demonstrated in the in the two example wrapper functions included.
+These functions independently create browser tracks using identical coordinate
+systems on the x-axis, and subsequently aligns them using the `patchwork`
+package. Any number of tracks or track-groups can be created and combined
+piecemeal, although I've also written a power wrapper function, `plot_shot()`,
+which I highly recommend.
 
-## Smoothing
-
-By default, plotting data is not smoothed, and you should check that the
-binsizes used result in accurate representations of the data, as excessive bins
-can cause overplotting.
-
-If you want to go over to the dark side and use smoothing, there is an argument
-to apply spline smoothing. If you want some other kind of smoothing, it's
-straightforward to modify the smooth function.
+For an alternative implementation also using `BRGenomics`, see Gitub
+[JAJ256/browser_plot.R](https://github.com/JAJ256/browser_plot.R).
 
 ## Requirements
 
@@ -23,6 +17,15 @@ straightforward to modify the smooth function.
 * dplyr
 * ggplot2
 
+## Limitations
+
+* Log-scaling with stranded will not plot correctly as we don't have a way of
+dealing with negative values
+* Currently a bug in `patchwork` that alters label justification only when a
+there's only a single facet level present (which is how I structured
+`plot_shot()`) ([Github issue 163](
+https://github.com/thomasp85/patchwork/issues/163))
+
 ## User Guide
 
 ### Importing Data
@@ -30,20 +33,16 @@ straightforward to modify the smooth function.
 `rtracklayer` and/or `BRGenomics` can be used to import `bigWig`, `bedGraphs`,
 or `bam` files as `GRanges` objects for plotting.
 
-The main plotting function can take any number of `GRanges` objects, lists of
-`GRanges` objects, or `GRangesList` objects as arguments. The only important
-distinction is that data within the same list will share the same y-axis
-scaling.
-
 ``` r
 ps_ctrl_granges <- import_bigWig("~/path/to/plus.bw",
                                  "~/path/to/minus.bw",
                                  genome = "hg19")
 # etc
 ```
-
-And we'll group data sharing y-axis scaling into the same list. The names given
-to these list elements will be used for plotting.
+The main plotting function can take any number of `GRanges` objects, lists of
+`GRanges` objects, or `GRangesList` objects as arguments. The only important
+distinction is that data within the same list will share the same y-axis
+scaling.
 
 ``` r
 PROseq <- list("WT PROseq" = ps_ctrl_granges,
@@ -55,6 +54,9 @@ PROcap <- list("WT PROcap" = pc_ctrl_granges,
 _[*] Lists can also be imported simultaneously with `import_bigWig()` For more,
 see the BRGenomics guide for [Importing & Processing Data](
 https://mdeber.github.io/articles/ImportingProcessingData.html)._
+
+If you use lists, the names given to these list elements will be the plot
+labels.
 
 Plot regions are given by a `GRanges` object containing a single range. We'll
 get one from a `TxDb` object, which will also allow us to plot full gene models.
@@ -118,23 +120,23 @@ plot_shot(PROcap, PROseq, GC = GC_Content,
           ylim = list(GC = c(0, 100)),
           annotations = txdb)
 ```
-![](shot1.png)
+<img src="shot1.png" width="600" height="800" alt="centered image" /> \
 
 Take note of a few things above:
 
 * `PROcap` and `PROseq` are both lists, but `GC_Content` is a simple `GRanges`
 object. Everyone is welcome in the dots.
-* I declared `GC = GC_Content` in order to set the plot label on the fly. That
-will work as long as you don't try to set a label to "pad_left" or "bin_FUN"
-or something.
+* I declared `GC = GC_Content` in order to set the plot label on the fly.
 * I gave a list of arguments to `expand_ranges`, one for each dataset group. You
-can give unnamed list so long as its length matches the number of dataset
+can give an unnamed list so long as its length matches the number of dataset
 groups.
 * For `bin_FUN` and `ylim`, I gave a named list indicating which plots to
 modify. Everything else is set to the default.
 * The `ylim`s are the same for both `PROcap` datasets and the `PROseq` datasets.
-The default is to add up data within 250 bins across the plotting region, but
-you should check to make sure the binning is appropriate to avoid overplotting.
+
+The default binning setting is to add up data within 250 bins across the
+plotting region, but you should check to make sure the binning is appropriate to
+avoid overplotting.
 
 Smoothing is graciously disabled by default, but you can activate it if you like
 to do sad science. I'll add a silver lining by tweaking the axes a bit.
@@ -150,9 +152,9 @@ plot_shot(PROcap, PROseq, GC = GC_Content,
           smooth = list(GC = TRUE),
           annotations = txdb)
 ```
-![](shot2.png)
+<img src="shot2.png" width="600" height="800" alt="centered image" /> \
 
-Wow, look at the dishonesty. This might as well be IGV! I just didn't have the
+Wow, look at the dishonesty. This might as well be **_IGV_**! I didn't have the
 heart to smooth the sequencing data.
 
 Let's do one more, this time without supplying a `TxDb` object. Instead, we'll
@@ -169,7 +171,7 @@ plot_shot(PROcap, PROseq, GC = GC_Content,
           smooth = FALSE, # peace for our time
           annotations = txsr, gene_names = names(txsr))
 ```
-![](shot3.png)
+<img src="shot3.png" width="600" height="800" alt="centered image" /> \
 
 I'll be nice and show you how I got the gene names, but _only_ because you know
 the profound consequences of plot smoothing on representing high-resolution,
@@ -201,16 +203,7 @@ The above functions will all produce data on identical x-axes, and the
 ``` r
 shot_genearrow(region, my_genelist, gene_names = my_genelist$symbol) +
     shot_scalebar(region = my_region) +
-    shot_stranded(PROseq, my_region, binsize = 350) +
+    shot_stranded(PROseq, my_region, binsize = 400) +
     plot_layout(heights = c(0.3, 0.1, 1), ncol = 1)
 ```
-![](shot4.png)
-
-## Limitations
-
-* Log-scaling will not plot correctly as negative signal values in stranded data
-cannot be handled correctly.
-* Currently a bug in `patchwork` that alters label justification only when a
-there's only a single facet level present (which is how I structured
-`plot_shot()`) ([Github issue 163](
-https://github.com/thomasp85/patchwork/issues/163))
+<img src="shot4.png" width="600" height="600" alt="centered image" /> \
