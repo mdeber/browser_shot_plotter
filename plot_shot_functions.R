@@ -1,20 +1,12 @@
 ## Assemble multiple tracks of publication-quality browser shots using 
 ## BRGenomics and ggplot2
 
-## As of lemon 0.4.2, requires ggplot2 no later than 3.2.1
-
-## Browser tracks are created independently using identical coordinate systems
-## on the x-axis, and are aligned and assembled using the patchwork package; any
-## number of tracks or track-groups can be created and combined piecemeal, as
-## demonstrated in the in the two example wrapper functions included below
-
 suppressPackageStartupMessages({
     require(dplyr)
     require(ggplot2)
     require(patchwork) 
     require(BRGenomics)
 })
-
 
 shot_scalebar <- function(region, plot = TRUE, linewidth = 1) {
     ## A track with only a short, labeled scale bar
@@ -74,8 +66,8 @@ shot_stranded <- function(grl, region, binsize, ylim = NULL, bin_FUN = sum,
     
     # if ylim set, pre-filter
     if (!is.null(ylim)) {
-        if (min(ylim) == 0L) grl <- lapply(grl, subset, strand == "+")
-        if (max(ylim) == 0L) grl <- lapply(grl, subset, strand == "-")
+        if (min(ylim) >= 0L) grl <- lapply(grl, subset, strand == "+")
+        if (max(ylim) <= 0L) grl <- lapply(grl, subset, strand == "-")
     }
     
     smooth_fun <- if (smooth) {
@@ -103,10 +95,11 @@ shot_stranded <- function(grl, region, binsize, ylim = NULL, bin_FUN = sum,
     
     # get y-axis scales
     if (is.null(ylim))
-        c(df$sig_p, -df$sig_m) %>% (function(x) c(min(x), 0, max(x))) -> ylim
-    
-    if (length(ylim) == 2 && ylim[1] < 0 && ylim[2] > 0)
-        ylim <- c(ylim[1], 0, ylim[2])
+        c(df$sig_p, -df$sig_m) %>% 
+        (function(y) 
+            if (min(y) < 0L && max(y) > 0L) 
+                c(min(y), 0L, max(y)) else range(y)
+        ) -> ylim
     
     # saturate off-scaled data (for user supplied ylims)
     #   -> doing it this way allows the axis line to be capped
@@ -176,7 +169,6 @@ shot_unstranded <- function(grl, region, binsize, ylim = NULL, bin_FUN = sum,
     
     # get counts
     strand(region) <- "*"
-    
     getCountsByPositions(grl, region, binsize = binsize, FUN = bin_FUN,
                          expand_ranges = expand_ranges, ncores = ncores) %>%
         lapply(as.vector) %>%
@@ -251,7 +243,7 @@ shot_genearrow <- function(region, genelist, gene_names, plot = TRUE) {
     df$start[df$start < 0L] <- 0L
     df$end[df$end > width(region)] <- width(region)
     df.long <- df[idx.long, ]
-    if (length(idx.long) > 0) {
+    if (length(idx.long) > 0L) {
         df <- df[-idx.long, ]
         arrow_ends <- arrow_ends[-idx.long]
     }
@@ -268,7 +260,7 @@ shot_genearrow <- function(region, genelist, gene_names, plot = TRUE) {
             aes(x = start, xend = end, y = tx, yend = tx),
             data = df.long
         ) + 
-        scale_x_continuous(limits = c(0, width(region)),
+        scale_x_continuous(limits = c(0L, width(region)),
                            expand = expansion(mult = c(0.02, 0))) +
         labs(x = NULL, y = NULL) +
         theme_classic() +
@@ -288,7 +280,8 @@ shot_genemodel <- function(region, txdb, plot = TRUE) {
     # get transcripts in regions; also use for mapping "TXID" to "TXNAME"
     transcripts(txdb) %>% 
         findOverlapPairs(region, ignore.strand = TRUE) %>%
-        pintersect %>% subset(hit) %>%
+        pintersect %>% 
+        subset(hit) %>%
         (function(gr) data.frame(start = start(gr) - start(region), 
                                  end = end(gr) - start(region),
                                  tx_id = gr$tx_id, tx = gr$tx_name)) -> txs
@@ -296,12 +289,14 @@ shot_genemodel <- function(region, txdb, plot = TRUE) {
     # -> Intersect GRangesList ranges over plot region, and return GRanges
     break_grl <- function(grl) {
         findOverlapPairs(grl, region, ignore.strand = TRUE) %>% 
-            pintersect %>% endoapply(subset, hit)
+            pintersect %>% 
+            endoapply(subset, hit)
     }
     # -> get tx names from GRangesList and add to GRanges mcols
     add_names_grl <- function(grl) {
         txnames <- sapply(names(grl), function(i) txs$tx[txs$tx_id == i])
-        mendoapply(function(x, nm) {x$tx_id <- nm; x}, grl, txnames)
+        mendoapply(function(x, nm) { x$tx_id <- nm; x }, 
+                   grl, txnames)
     }
     # -> from GRanges or GRangesList, get dataframe for plotting
     make_df <- function(gr) data.frame(start = start(gr) - start(region),
@@ -310,7 +305,8 @@ shot_genemodel <- function(region, txdb, plot = TRUE) {
     grl2df <- function(x) make_df(unlist(add_names_grl(x)))
     
     # store UTRs for trimming exons
-    fiveUTRsByTranscript(txdb) %>% break_grl %>%
+    fiveUTRsByTranscript(txdb) %>% 
+        break_grl %>%
         endoapply(function(x) {
             # oddly there are transcripts with multiple 5' UTRs
             if (length(x) < 1L) 
@@ -329,11 +325,14 @@ shot_genemodel <- function(region, txdb, plot = TRUE) {
     trim_overlap <- function(grl1, grl2) {
         nm <- names(grl1)[names(grl1) %in% names(grl2)]
         if (length(nm) > 0L)
-            grl1[nm] <- mendoapply(GenomicRanges::setdiff, grl1[nm], grl2[nm])
+            grl1[nm] <- mendoapply(GenomicRanges::setdiff, 
+                                   grl1[nm], grl2[nm])
         grl1[lengths(grl1) > 0L]
     }
-    exonsBy(txdb, by = "tx") %>% break_grl %>%
-        trim_overlap(fiveUTR_grl) %>% trim_overlap(threeUTR_grl) %>%
+    exonsBy(txdb, by = "tx") %>% 
+        break_grl %>%
+        trim_overlap(fiveUTR_grl) %>% 
+        trim_overlap(threeUTR_grl) %>%
         grl2df -> exons
     
     # plot data for directional arrows over introns; first arrow spacing

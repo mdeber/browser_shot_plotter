@@ -102,7 +102,6 @@ plot_shot <- function(..., region, binsize = NULL, nbins = 250L,
     
     # for args that can vary by dataset group
     arg_merge <- function(arg) {
-        
         argname <- deparse(substitute(arg))
         
         if (!is.list(arg)) {

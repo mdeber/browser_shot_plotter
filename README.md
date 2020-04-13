@@ -48,7 +48,7 @@ scaling.
 PROseq <- list("WT PROseq" = ps_ctrl_granges,
                "KD PROseq" = ps_kd_granges)
 PROcap <- list("WT PROcap" = pc_ctrl_granges,
-               "KD PROcap" = pc_ctrl_granges)
+               "KD PROcap" = pc_kd_granges)
 ```
 
 _[*] Lists can also be imported simultaneously with `import_bigWig()` For more,
@@ -121,7 +121,6 @@ plot_shot(PROcap, PROseq, GC = GC_Content,
           annotations = txdb)
 ```
 <img src="shot1.png" width="600" height="800" alt="centered image" />
-<br > <br />
 
 Take note of a few things above:
 
@@ -154,7 +153,6 @@ plot_shot(PROcap, PROseq, GC = GC_Content,
           annotations = txdb)
 ```
 <img src="shot2.png" width="600" height="800" alt="centered image" />
-<br > <br />
 
 Wow, look at the dishonesty. This might as well be **_IGV_**! I didn't have the
 heart to smooth the sequencing data.
@@ -174,7 +172,9 @@ plot_shot(PROcap, PROseq, GC = GC_Content,
           annotations = txsr, gene_names = names(txsr))
 ```
 <img src="shot3.png" width="600" height="800" alt="centered image" />
-<br > <br />
+
+One reason you might choose to use gene arrows is that plotting full gene models
+is typically the slowest step.
 
 I'll be nice and show you how I got the gene names, but _only_ because you know
 the profound consequences of plot smoothing on representing high-resolution,
@@ -201,7 +201,7 @@ underlying plot functions are:
 * `shot_scalebar()` for adding an automatically-sized and labeled scalebar
 
 The above functions will all produce data on identical x-axes, and the
-`patchwork` packaing will align them for us:
+`patchwork` package will align them for us:
 
 ``` r
 shot_genearrow(region, my_genelist, gene_names = my_genelist$symbol) +
