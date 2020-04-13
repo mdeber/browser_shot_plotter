@@ -139,6 +139,9 @@ The default binning setting is to add up data within 250 bins across the
 plotting region, but you should check to make sure the binning is appropriate to
 avoid overplotting.
 
+_**Pro tip:** If the spacing between lines in the plot looks "funny", adjust the
+binsize or the plotting dimensions._
+
 Smoothing is graciously disabled by default, but you can activate it if you like
 to do sad science. I'll add a silver lining by tweaking the axes a bit.
 
@@ -150,13 +153,15 @@ plot_shot(PROcap, PROseq, GC = GC_Content,
           ylim = list(PROcap = c(-8000, 8000),
                       PROseq = c(-2000, 2000),
                       GC = c(0, 50, 100)),
-          smooth = list(GC = TRUE),
+          smooth = list(PROseq = TRUE, 
+                        GC = TRUE),
           annotations = txdb)
 ```
 <img src="shot2.png" width="600" height="800" alt="centered image" />
 
-Wow, look at the dishonesty. This might as well be **_IGV_**! I didn't have the
-heart to smooth the sequencing data.
+Smoothed browser shots are very common, and maybe there's a time and place for 
+it, but the data is already being binned across hundreds of bases. I can't 
+recommend throwing away information like this.
 
 Let's do one more, this time without supplying a `TxDb` object. Instead, we'll
 give it our genelist.
@@ -183,6 +188,9 @@ high-dynamic-range genomics data.
 
 ``` r
 library(org.Hs.eg.db)
+txs$gene_id <- select(txdb, keys = txs$tx_name, 
+                      columns = "GENEID", 
+                      keytype = "TXNAME")[[2]]
 txs$symbol <- select(org.Hs.eg.db, keys = txs$gene_id,
                      columns = "GENENAME",
                      keytype = "ENTREZID")[[2]]
@@ -207,7 +215,7 @@ The above functions will all produce data on identical x-axes, and the
 ``` r
 shot_genearrow(region, my_genelist, gene_names = my_genelist$symbol) +
     shot_scalebar(region = my_region) +
-    shot_stranded(PROseq, my_region, binsize = 400) +
+    shot_stranded(PROseq, my_region, binsize = 300) +
     plot_layout(heights = c(0.3, 0.1, 1), ncol = 1)
 ```
 <img src="shot4.png" width="600" height="600" alt="centered image" />

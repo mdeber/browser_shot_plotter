@@ -85,8 +85,8 @@ shot_stranded <- function(grl, region, binsize, ylim = NULL, bin_FUN = sum,
             lapply(as.vector) %>%
             lapply(smooth_fun) %>%
             (function(x) data.frame(x = (binsize*seq_along(x[[1]])) - binsize,
-                                    sig_p = x[[1]],
-                                    sig_m = x[[2]],
+                                    sig_p =  x[[1]],
+                                    sig_m = -x[[2]],
                                     sample = nm))
     }
     mcMap(map_fun, grl, names(grl), mc.cores = ncores) %>%
@@ -95,7 +95,7 @@ shot_stranded <- function(grl, region, binsize, ylim = NULL, bin_FUN = sum,
     
     # get y-axis scales
     if (is.null(ylim))
-        c(df$sig_p, -df$sig_m) %>% 
+        c(df$sig_p, df$sig_m) %>% 
         (function(y) 
             if (min(y) < 0L && max(y) > 0L) 
                 c(min(y), 0L, max(y)) else range(y)
@@ -114,7 +114,7 @@ shot_stranded <- function(grl, region, binsize, ylim = NULL, bin_FUN = sum,
             facet_grid(rows = vars(sample)) +
             ggplot2::geom_segment(aes(x = x, xend = x, y = 0, yend = sig_p),
                                   color = "red") + 
-            ggplot2::geom_segment(aes(x = x, xend = x, y = 0, yend = -sig_m),
+            ggplot2::geom_segment(aes(x = x, xend = x, y = 0, yend = sig_m),
                                   color = "blue") +
             scale_y_continuous(limits = range(ylim), breaks = ylim, 
                                labels = ylim, expand = c(0, 0)) + 
