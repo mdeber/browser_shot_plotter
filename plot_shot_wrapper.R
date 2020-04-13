@@ -1,5 +1,4 @@
 
-# based around functions that can return lists
 
 plot_shot <- function(..., region, binsize = NULL, nbins = 250L, 
                       ylim = NULL, expand_ranges = TRUE, bin_FUN = sum, 
@@ -7,19 +6,17 @@ plot_shot <- function(..., region, binsize = NULL, nbins = 250L,
                       model_height = 1, gene_names = NULL, smooth = FALSE,
                       ncores = getOption("mc.cores", 2L)) {
     
-    # for each argument in the functions plot_stranded/plot_unstranded, this
-    # function will make a list with the same name as that argument;
-
-    # each argument list will have an element for each group of input datasets
-    # (which can be GRanges or lists of GRanges), and will be named for that
-    # dataset
-
-    # i.e., the first argument name is grl, so the list grl will have elements
-    # named after each group of input datasets; and each element of grl will
-    # be passed as the argument `grl` in shot_stranded/shot_unstranded
+    ## for each argument in the functions plot_stranded/plot_unstranded, this
+    ## function will make a list with the same name as that argument;
+    ##   each element of that list will have the name of one of the dataset
+    ##   groups
+    
+    ## i.e. for the argument ylim, if the dataset groups are PROcap, PROseq, and 
+    ## GC, an object named "ylim" will be created, with the format:
+    ##   ylim = list(PROcap = c(0, 10), PROseq = c(0, 5), GC = c(0, 100))
     
     # -------------------------------------------------- #
-    # Get 'grl' list, and name any un-named inputs
+    # Format dataset list, and set all names
     # -------------------------------------------------- #
     
     # each element of grl is a dataset group of one or more GRanges that will 
@@ -36,10 +33,9 @@ plot_shot <- function(..., region, binsize = NULL, nbins = 250L,
     
     # for any non-list elements of grl, first put them into a list and name the
     # object within
-    if (!all(is_list <- vapply(grl, is.list, logical(1)))) {
+    if (!all(is_list <- vapply(grl, is.list, logical(1))))
         grl[!is_list] <- Map(function(x, nm) setNames(list(x), nm),
                              grl[!is_list], arg_names[!is_list])
-    }
     
     # finally set any list names that weren't given
     names(grl)[noname] <- arg_names[noname]

@@ -4,8 +4,8 @@ Assemble multiple tracks of publication-quality browser shots using
 These functions independently create browser tracks using identical coordinate
 systems on the x-axis, and subsequently aligns them using the `patchwork`
 package. Any number of tracks or track-groups can be created and combined
-piecemeal, although I've also written a power wrapper function, `plot_shot()`,
-which I highly recommend.
+piecemeal, although I've also written a powerful wrapper function, 
+`plot_shot()`, which I highly recommend.
 
 For an alternative implementation also using `BRGenomics`, see Gitub
 [JAJ256/browser_plot.R](https://github.com/JAJ256/browser_plot.R).
@@ -98,7 +98,8 @@ aggregated. `annotations` can either be
 performance
 * If `annotations` is a GRanges object (e.g. of genes/transcripts), simple gene
 arrows are plotted, which are labeled by `gene_names`. If a `TxDb` object is
-given, full gene models are plotted, and `gene_names` is ignored.
+given, full gene models are plotted, and `gene_names` is ignored. _Note that
+producing full gene models can be performance limiting._
 * `pad_left` and `pad_right`: positive numbers that expand `region` on either
 side
 * `model_height`: the relative height of the gene model/gene arrow plot vs.
