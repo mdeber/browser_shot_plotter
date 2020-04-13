@@ -120,7 +120,8 @@ plot_shot(PROcap, PROseq, GC = GC_Content,
           ylim = list(GC = c(0, 100)),
           annotations = txdb)
 ```
-<img src="shot1.png" width="600" height="800" alt="centered image" /> \
+<img src="shot1.png" width="600" height="800" alt="centered image" />
+<br > <br />
 
 Take note of a few things above:
 
@@ -152,7 +153,8 @@ plot_shot(PROcap, PROseq, GC = GC_Content,
           smooth = list(GC = TRUE),
           annotations = txdb)
 ```
-<img src="shot2.png" width="600" height="800" alt="centered image" /> \
+<img src="shot2.png" width="600" height="800" alt="centered image" />
+<br > <br />
 
 Wow, look at the dishonesty. This might as well be **_IGV_**! I didn't have the
 heart to smooth the sequencing data.
@@ -171,7 +173,8 @@ plot_shot(PROcap, PROseq, GC = GC_Content,
           smooth = FALSE, # peace for our time
           annotations = txsr, gene_names = names(txsr))
 ```
-<img src="shot3.png" width="600" height="800" alt="centered image" /> \
+<img src="shot3.png" width="600" height="800" alt="centered image" />
+<br > <br />
 
 I'll be nice and show you how I got the gene names, but _only_ because you know
 the profound consequences of plot smoothing on representing high-resolution,
@@ -206,4 +209,4 @@ shot_genearrow(region, my_genelist, gene_names = my_genelist$symbol) +
     shot_stranded(PROseq, my_region, binsize = 400) +
     plot_layout(heights = c(0.3, 0.1, 1), ncol = 1)
 ```
-<img src="shot4.png" width="600" height="600" alt="centered image" /> \
+<img src="shot4.png" width="600" height="600" alt="centered image" />
