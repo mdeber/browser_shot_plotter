@@ -91,7 +91,9 @@ shot_stranded <- function(grl, region, binsize, ylim = NULL, bin_FUN = sum,
     }
     mcMap(map_fun, grl, names(grl), mc.cores = ncores) %>%
         c(make.row.names = FALSE) %>%
-        do.call(rbind, .) -> df
+        do.call(rbind, .) %>% 
+        mutate(sample = factor(sample, levels = unique(sample))) -> 
+        df
     
     # get y-axis scales
     if (is.null(ylim))
@@ -179,7 +181,9 @@ shot_unstranded <- function(grl, region, binsize, ylim = NULL, bin_FUN = sum,
                        sample = nm),
             ., names(.)) %>% 
         c(make.row.names = FALSE) %>%
-        do.call(rbind, .) -> df
+        do.call(rbind, .) %>% 
+        mutate(sample = factor(sample, levels = unique(sample))) -> 
+        df
     
     # get y-axis scales
     if (is.null(ylim))
