@@ -98,11 +98,13 @@ shot_stranded <- function(grl, region, binsize, ylim = NULL, bin_FUN = sum,
     # get y-axis scales
     if (is.null(ylim))
         c(df$sig_p, df$sig_m) %>% 
-        (function(y) 
-            if (min(y) < 0L && max(y) > 0L) 
+        pretty %>% 
+        (function(y)
+            if (min(y) < 0L && max(y) > 0L)
                 c(min(y), 0L, max(y)) else range(y)
-        ) -> ylim
-    
+        ) ->
+        ylim
+        
     # saturate off-scaled data (for user supplied ylims)
     #   -> doing it this way allows the axis line to be capped
     df[c("sig_p", "sig_m")] <- lapply(df[c("sig_p", "sig_m")], function(y) {
@@ -187,7 +189,7 @@ shot_unstranded <- function(grl, region, binsize, ylim = NULL, bin_FUN = sum,
     
     # get y-axis scales
     if (is.null(ylim))
-        ylim <- c(0, max(df$signal))
+        ylim <- c(0, max(pretty(df$signal)))
     
     # saturate off-scaled data (for user supplied ylims)
     #   -> doing it this way allows the axis line to be capped
@@ -242,13 +244,17 @@ shot_genearrow <- function(region, genelist, gene_names, plot = TRUE) {
     
     # due to using scale_x_cont., have to trim out-of-range transcripts;
     # -> but don't want them to have arrows
-    idx.long <- union(which(df$start < 0L & arrow_ends == "first"),
-                      which(df$end > width(region) & arrow_ends == "last"))
+    # -> will also include unstranded ranges here
+    idx.long <- unique(c(
+        which(df$start < 0L & arrow_ends == "first"),
+        which(df$end > width(region) & arrow_ends == "last"),
+        which(strand(gl) == "*")
+    ))
     df$start[df$start < 0L] <- 0L
     df$end[df$end > width(region)] <- width(region)
     df.long <- df[idx.long, ]
     if (length(idx.long) > 0L) {
-        df <- df[-idx.long, ]
+        df <- df[-idx.long, , drop = FALSE]
         arrow_ends <- arrow_ends[-idx.long]
     }
     
@@ -257,8 +263,10 @@ shot_genearrow <- function(region, genelist, gene_names, plot = TRUE) {
         ggplot2::geom_segment(
             aes(x = start, xend = end, y = tx, yend = tx),
             data = df,
-            arrow = arrow(ends = arrow_ends, type = "closed", 
-                          length = unit(4, "points"))
+            arrow = if (length(arrow_ends) > 0L) {
+                arrow(ends = arrow_ends, type = "closed", 
+                      length = unit(4, "points"))
+            } else NULL
         ) + 
         ggplot2::geom_segment(
             aes(x = start, xend = end, y = tx, yend = tx),
