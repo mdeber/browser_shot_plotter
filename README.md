@@ -1,10 +1,10 @@
 Assemble multiple tracks of publication-quality browser shots using
-[BRGenomics](https://mdeber.github.io) and ggplot2.
+[BRGenomics](https://mdeber.github.io) and ggplot2 with patchwork.
 
 These functions independently create browser tracks using identical coordinate
 systems on the x-axis, and subsequently aligns them using the `patchwork`
 package. Any number of tracks or track-groups can be created and combined
-piecemeal, although I've also written a powerful wrapper function, 
+piecemeal, although I've also written a powerful wrapper function,
 `plot_shot()`, which I highly recommend.
 
 For an alternative implementation also using `BRGenomics`, see Gitub
@@ -19,12 +19,8 @@ For an alternative implementation also using `BRGenomics`, see Gitub
 
 ## Limitations
 
-* Log-scaling with stranded will not plot correctly as we don't have a way of
-dealing with negative values
-* Currently a bug in `patchwork` that alters label justification only when a
-there's only a single facet level present (which is how I structured
-`plot_shot()`) ([Github issue 163](
-https://github.com/thomasp85/patchwork/issues/163))
+* Log-scaling with stranded will not plot correctly (haven't implemented
+anything like pseudo log-scaling)
 
 ## User Guide
 
@@ -153,14 +149,14 @@ plot_shot(PROcap, PROseq, GC = GC_Content,
           ylim = list(PROcap = c(-8000, 8000),
                       PROseq = c(-2000, 2000),
                       GC = c(0, 50, 100)),
-          smooth = list(PROseq = TRUE, 
+          smooth = list(PROseq = TRUE,
                         GC = TRUE),
           annotations = txdb)
 ```
 <img src="shot2.png" width="600" height="800" alt="centered image" />
 
-Smoothed browser shots are very common, and maybe there's a time and place for 
-it, but the data is already being binned across hundreds of bases. I can't 
+Smoothed browser shots are very common, and maybe there's a time and place for
+it, but the data is already being binned across hundreds of bases. I can't
 recommend throwing away information like this.
 
 Let's do one more, this time without supplying a `TxDb` object. Instead, we'll
@@ -186,8 +182,8 @@ In case you you were wondering how I got the gene names:
 
 ``` r
 library(org.Hs.eg.db)
-txs$gene_id <- select(txdb, keys = txs$tx_name, 
-                      columns = "GENEID", 
+txs$gene_id <- select(txdb, keys = txs$tx_name,
+                      columns = "GENEID",
                       keytype = "TXNAME")[[2]]
 txs$symbol <- select(org.Hs.eg.db, keys = txs$gene_id,
                      columns = "GENENAME",
