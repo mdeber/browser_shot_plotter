@@ -182,9 +182,7 @@ plot_shot(PROcap, PROseq, GC = GC_Content,
 One reason you might choose to use gene arrows is that plotting full gene models
 is typically the slowest step.
 
-I'll be nice and show you how I got the gene names, but _only_ because you know
-the profound consequences of plot smoothing on representing high-resolution,
-high-dynamic-range genomics data.
+In case you you were wondering how I got the gene names:
 
 ``` r
 library(org.Hs.eg.db)
